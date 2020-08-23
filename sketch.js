@@ -1,5 +1,8 @@
 //Create variables here
-var dog, happyDog, database, foodS, foodStock, dogImg;
+var dog, happyDog, database, foodS, foodStock = 0, dogImg;
+var feedButton, addButton;
+var fedTime, lastFed;
+var foodObj;
 
 function preload()
 {
@@ -12,49 +15,60 @@ function setup() {
   database = firebase.database();
   console.log(database);
 
-  foodStock = database.ref('Food');
-  foodStock.on("value",readStock);
-
-	createCanvas(500,500);
+	createCanvas(1000,1000);
   
-  dog = createSprite(250,250,30,30);
-  dog.addImage(dogImg,250,250,30,30);
-}
+  foodObj = new Food();
 
+  feedButton = createButton("Feed the Dog");
+  feedButton.position(700,95);
+  feedButton.mousePressed(feedDog);
+
+  addButton = createButton("Add Food");
+  addButton.position(800,95);
+  addButton.mousePressed(addFood);
+
+  dog = createSprite(250,250,30,30);
+  dog.addImage(dogImg);
+}
 
 function draw() {  
   background(46,139,87);
-  if(keyWentDown(UP_ARROW))
-  {
-    writeStock(foodS);
-    dog.addImage(happyDog,250,250,30,30);
-  }
-
+  foodObj.display();
   drawSprites();
-  //add styles here
   textSize(30);
-  fill("green"); 
-  stroke("red");
-  text(foodS,100,300);
-}
+  text("foodStock : "+ foodStock,600,200);
 
-function readStock(data)
-{
-  foodS = data.val();
-}
-
-function writeStock(x)
-{
-  if(x <= 0)
+  fill(255,255,254);
+  textSize(15);
+  
+  if(lastFed >= 12)
   {
-    x = 0;
+    text("Last Feed: "+lastFed%12 +" PM",350,30);
+  } 
+  else if(lastFed === 0)
+  {
+    text("Last Feed: 12 AM",350,30);
   }
   else
   {
-    x = x-1;
+    text("Last Feed: "+lastFed+" AM",350,30);
   }
+}
 
+function feedDog()
+{
+  dog.addImage(happyDog);
+  foodObject.updateFoodStock(foodObj.getFoodStock()-1);
   database.ref('/').update({
-    Food:x
+    food:foodObject.getFoodStock(),
+    fedTime:hour() 
+  })
+}
+
+function addFood()
+{
+  foodStock++;
+  database.ref('/').update({
+    food:foodStock
   })
 }
